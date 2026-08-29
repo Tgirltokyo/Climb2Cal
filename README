@@ -1,0 +1,45 @@
+# Climb2Cal
+
+Welcome to climb2cal
+This is a script i have written to sync my schedule from the reach with my google calender
+its simple enough that there should'nt bee any issues on the script's end
+
+
+
+***Using the app Locally***
+
+run Climb2Cal.py, you will be prompted to enter your first and last name
+(this will be saved and used to log into the reach's website, so use the same name as you do there)
+then you will be prompted to connect your google account
+you will get a warning that says the app has not been authenticated by google
+this is expected, you can hit continue
+and that's it, the script will add everything to a secondary calender in your google account 
+
+the next time you run the program it will also make any changes (such as cancelled sessions, or start/end timings)
+as well as adding any new sessions
+
+
+
+***Home server automation***
+
+if you happen to have access to a home server then i will be making a docker image soon.
+i am happy to help you set it up once i have added it
+that way you can automatically run the script at any time of day you choose, forever
+this was the reason i made this whole thing in the first place
+
+otherwise i have hosted the script on my own homeserver and it executes every day at 10pm automatically
+and if i can figure out how to do so: ill be happy to run your script on my server too
+
+
+
+##TROUBLESHOOTING##
+
+-if you have entered your name incorrectly, please delete the 'login.json' file
+-and if you wish to use a different google account please delete the "token.json" file
+in both cases, run the script again :)
+
+any issues just shoot me a message or find me at the reach, i'm more then happy to help
+or email at pkaciemalone@gmail.com and reference 'Climb2Cal' somewhere :)
+
+
+Enjoy! :3

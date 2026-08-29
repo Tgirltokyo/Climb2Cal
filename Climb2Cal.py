@@ -140,7 +140,6 @@ def update_google_calendar(ID, sessions):
     test_run = 0
 
     while len(sessions) > 0:
-        test_run += 1
         #returns add, next, delete or update
         task = get_task(current_google_event, current_session)
 
@@ -149,7 +148,6 @@ def update_google_calendar(ID, sessions):
             event = {
                 'summary': task[1],
                 'location': 'The Reach Climbing Wall, Unit 6, Mellish Industrial Estate, Harrington Way, London SE18 5NR, UK',
-                'description': 'test',
                 'start': {
                     'dateTime': task[2],
                     'timeZone': 'Europe/London',
@@ -188,7 +186,6 @@ def update_google_calendar(ID, sessions):
             event = {
                 'summary': task[1],
                 'location': 'The Reach Climbing Wall, Unit 6, Mellish Industrial Estate, Harrington Way, London SE18 5NR, UK',
-                'description': 'test',
                 'start': {
                     'dateTime': task[2],
                     'timeZone': 'Europe/London',
@@ -210,8 +207,6 @@ def update_google_calendar(ID, sessions):
         else:
             print(f"an error occurred: no valid operation found for {current_session}\n{current_google_event}")
 
-        if test_run >= 9:
-            sessions = sessions[-1:]
 
 def get_task(google, session):
     start, end = session[1].split(" – ")
@@ -257,5 +252,3 @@ print(f"\n\nClimb2Cal Successfully Executed :)"
       f"updated: {stats["updated"]}   "
       f"unchanged: {stats["unchanged"]}"
       f"\nin {time.time()-timer}seconds :3")
-
-# example session item: ['Thursday, 27 Aug 2026', '10:30 – 12:00', 'Adult group', '1.5']

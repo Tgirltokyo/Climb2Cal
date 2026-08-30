@@ -12,7 +12,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # If modifying scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
+SCOPES = ["https://www.googleapis.com/auth/calendar.app.created"]
 timer = time.time()
 global stats
 stats = {
@@ -95,19 +95,27 @@ def get_google_calendar():
 
     try:
         service = build("calendar", "v3", credentials=creds)
-        calendar_list = service.calendarList().list().execute()["items"]
-        ID = None
-        #find id for climb2cal calendar
-        for x in range(len(calendar_list)):
-            if calendar_list[x]["summary"]=="Climb2Cal":
-                ID = calendar_list[x]["id"]
-                return ID
-        if ID is None:
-            #if no climb2cal calendar, make one
-            print("**Calendar 'Climb2Cal' not Found**")
-            new_cal = service.calendars().insert(body={"summary": "Climb2Cal"}).execute()
-            print("Calendar 'Climb2Cal' Created")
-            return new_cal["id"]
+
+        # use the saved calendar ID.
+        if os.path.exists('calendar_id'):
+            with open('calendar_id.json', "r") as file:
+                calendar_id = json.load(file)
+            try:
+                # check that the calendar still exists
+                service.calendars().get(calendarId=calendar_id).execute()
+                return calendar_id
+
+            except Exception:
+                pass
+
+        # no existing calendar
+        print("Calendar 'Climb2Cal' not Found")
+        new_cal = service.calendars().insert(body={"summary": "Climb2Cal"}).execute()
+        calendar_id = new_cal["id"]
+        with open('calendar_id.json', "w") as file:
+            json.dump(calendar_id, file)
+        print("Calendar 'Climb2Cal' Created")
+        return calendar_id
 
     except HttpError as error:
         print(f"An error occurred: {error}")

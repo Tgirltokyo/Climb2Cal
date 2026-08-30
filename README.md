@@ -36,7 +36,7 @@ and that's it, the script will add everything to a secondary calendar in your go
 
 
 
-### if you have used this before:
+### if you have used it before:
 
 every time you want to run the program again just double click 'Climb2Cal' 
 

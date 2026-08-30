@@ -20,7 +20,9 @@ to install python visit https://www.pythonguis.com/installation/install-python-w
 
 ## HOW TO USE:
 
-double click 'setup'
+download 'Source code (zip)' from the Releases page (https://github.com/Tgirltokyo/Climb2Cal/releases)
+
+extract the folder, open it and run (double click) 'setup'
 
 you will then be prompted to enter your first and last name
 
@@ -38,11 +40,9 @@ and that's it, the script will add everything to a secondary calendar in your go
 
 ### if you have used it before:
 
-every time you want to run the program again just double click 'Climb2Cal' 
+every time you want to update the calendar just double click 'Climb2Cal' 
 
-it will also make any changes (such as cancelled sessions, or start/end timings)
-
-as well as adding any new sessions
+it will also make any changes (such as cancelled/dropped sessions, ect) as well as adding any new sessions
 
 
 

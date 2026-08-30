@@ -37,7 +37,7 @@ def get_reach_schedule():
             with open('login.json', "r") as file:
                 login = json.load(file)
         else:
-            login = {"first_name": input("First Name: "),"last_name": input( "Last Name: "),}
+            login = {"first_name": input("\n\nEnter Your First Name: "),"last_name": input( "Enter Your Surname: "),}
             with open("login.json", "w") as file:
                 json.dump(login, file)
         print(f"\nLogging in as: {login['first_name']} {login['last_name']}")
@@ -251,4 +251,4 @@ print(f"\n\nClimb2Cal Successfully Executed :)"
       f"\n\nadded: {stats["added"]}   "
       f"updated: {stats["updated"]}   "
       f"unchanged: {stats["unchanged"]}"
-      f"\nin {time.time()-timer}seconds :3")
+      f"\nin {time.time()-timer}seconds :3\n\n")

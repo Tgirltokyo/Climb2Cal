@@ -16,6 +16,10 @@ python 1.13.0 or newer
 
 to install python visit https://www.pythonguis.com/installation/install-python-windows/
 
+as the google side of things is still in "testing" i will need your (google)email so i can allow you access to the app
+
+i will also need to send you an additional file to access the app, it is a sensitive one that i wont share on here
+
 
 
 ## HOW TO USE:

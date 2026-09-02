@@ -24,60 +24,16 @@ stats = {
 
 
 def main():
-    reach_schedule = get_reach_schedule()
-    cal_id = get_google_calendar()
-    update_google_calendar(cal_id, reach_schedule)
+    google_authentication()
+    reach_schedule, config = get_reach_schedule()
+    update_google_calendar(config, reach_schedule)
 
 
-def get_reach_schedule():
-    with sync_playwright() as p:
-
-        #get existing user login, else request login details
-        if os.path.exists('login.json'):
-            with open('login.json', "r") as file:
-                login = json.load(file)
-        else:
-            login = {"first_name": input("\n\nEnter Your First Name: "),"last_name": input( "Enter Your Surname: "),}
-            with open("login.json", "w") as file:
-                json.dump(login, file)
-        print(f"\nLogging in as: {login['first_name']} {login['last_name']}")
-
-        browser = p.firefox.launch(headless=True)
-        page = browser.new_page()
-        #login
-        page.goto("https://climbinglondon.co.uk/diary/i-login.php")
-        attempt = 0
-        print("Retrieving Sessions")
-        while True:
-            attempt += 1
-            page.fill("#first", login["first_name"])
-            page.fill("#last", login["last_name"])
-            page.click('input.art-button[value="Log me in"]')
-            page.wait_for_load_state("networkidle")
-            check = page.locator('input.art-button[value="All Dates from today"]')
-            # check login successfull
-            if check.count() > 0:
-                #if login successful
-                page.click('input.art-button[value="All Dates from today"]')
-                page.wait_for_load_state("networkidle")
-                button = page.locator("button.xlsx.art-button")
-                button_blob = button.get_attribute("data-fileblob")
-                data = json.loads(button_blob)
-                sessions = data['data']
-                return sessions[1:]
-            elif attempt < 3:
-                #if login unsuccessful
-                print("error logging in, trying again")
-            else:
-                print("error logging in, try deleting 'login.json' then try again")
-                sys.exit()
-
-
-def get_google_calendar():
+def google_authentication():
+    print("Authenticating with Google")
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first time.
-    print("Retrieving Google Calendar")
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     # If there are no (valid) credentials available, let the user log in.
@@ -93,36 +49,132 @@ def get_google_calendar():
         with open("token.json", "w") as token:
             token.write(creds.to_json())
 
+
+def get_user_data():
+    with open("config.json", "w") as file:
+        first_name = input("Enter your first name: ")
+        last_name = input("Enter your last name: ")
+        instructing = input("Get Instructing Sessions? y/n ")
+        instructing = True if instructing.lower() == "y" else False
+        route_setting = input("Get Route Setting Dates? y/n ")
+        route_setting = True if route_setting.lower() == "y" else False
+        cal_id = get_google_calendar_id()
+
+        user_info = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "Instructing": instructing,
+            "Route Setting": route_setting,
+            "Calendar ID": cal_id
+        }
+        json.dump(user_info, file)
+        return user_info
+
+
+def get_google_calendar_id():
+    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    service = build("calendar", "v3", credentials=creds)
     try:
-        service = build("calendar", "v3", credentials=creds)
+        # Get calendar
+        calendars = service.calendarList().list().execute()
+        calendar = next(
+            (cal for cal in calendars.get("items", []) if cal.get("summary") == "Climb2Cal"), None)
+        if calendar is None:
+            print("Creating New Calendar")
+            raise ValueError("Calendar doesn't exist")
 
-        # use the saved calendar ID.
-        if os.path.exists('calendar_id'):
-            with open('calendar_id.json', "r") as file:
-                calendar_id = json.load(file)
-            try:
-                # check that the calendar still exists
-                service.calendars().get(calendarId=calendar_id).execute()
-                return calendar_id
-
-            except Exception:
-                pass
-
-        # no existing calendar
-        print("Calendar 'Climb2Cal' not Found")
-        new_cal = service.calendars().insert(body={"summary": "Climb2Cal"}).execute()
-        calendar_id = new_cal["id"]
-        with open('calendar_id.json', "w") as file:
-            json.dump(calendar_id, file)
-        print("Calendar 'Climb2Cal' Created")
+        print("Located Google Calendar")
+        calendar_id = calendar["id"]
         return calendar_id
 
-    except HttpError as error:
-        print(f"An error occurred: {error}")
+
+    except (HttpError, ValueError):
+        #  create new calendar
+        calendar = service.calendars().insert(body={"summary": "Climb2Cal"}).execute()
+        calendar_id = calendar["id"]
+
+        return calendar_id
 
 
-def update_google_calendar(ID, sessions):
+def get_reach_schedule():
+    with sync_playwright() as p:
+
+        #get existing user login, else request login details
+        if os.path.exists('config.json'):
+            with open('config.json', "r") as file:
+                config = json.load(file)
+        else:
+            config = get_user_data()
+        route_setting = []
+        instructing = []
+
+        if config["Instructing"] is True:
+            print(f"\nGetting Instructing Dates for: {config['first_name']} {config['last_name']}")
+            browser = p.firefox.launch(headless=False)
+            page = browser.new_page()
+            #login
+            page.goto("https://climbinglondon.co.uk/diary/i-login.php")
+            attempt = 0
+            while instructing == []:
+                attempt += 1
+                page.fill("#first", config["first_name"])
+                page.fill("#last", config["last_name"])
+                page.click('input.art-button[value="Log me in"]')
+                page.wait_for_load_state("networkidle")
+                check = page.locator('input.art-button[value="All Dates from today"]')
+                # check login successfull
+                if check.count() > 0:
+                    #if login successful
+                    page.click('input.art-button[value="All Dates from today"]')
+                    page.wait_for_load_state("networkidle")
+                    button = page.locator("button.xlsx.art-button")
+                    button_blob = button.get_attribute("data-fileblob")
+                    data = json.loads(button_blob)
+                    instructing = data['data'][1:]
+                elif attempt < 3:
+                    #if login unsuccessful
+                    print("error logging in, trying again")
+                else:
+                    print("error logging in, try deleting 'config.json' then try again")
+                    sys.exit()
+
+        if config["Route Setting"] is True:
+            print(f"\nGetting Route Setting Dates for: {config['first_name']} {config['last_name']}")
+            page = browser.new_page()
+            #login
+            page.goto("https://climbinglondon.co.uk/diary/r-login.php")
+            attempt = 0
+            while route_setting == []:
+                attempt += 1
+                page.fill("#first", config["first_name"])
+                page.fill("#last", config["last_name"])
+                page.click('input.art-button[value="Log me in"]')
+                page.wait_for_load_state("networkidle")
+                check = page.locator('input.art-button[value="All Dates from today"]')
+                # check login successfull
+                if check.count() > 0:
+                    #if login successful
+                    page.click('input.art-button[value="All Dates from today"]')
+                    page.wait_for_load_state("networkidle")
+                    button = page.locator("button.xlsx.art-button")
+                    button_blob = button.get_attribute("data-fileblob")
+                    data = json.loads(button_blob)
+                    route_setting = data['data'][1:]
+
+                elif attempt < 3:
+                    #if login unsuccessful
+                    print("error logging in, trying again")
+                else:
+                    print("error logging in, try deleting 'config.json' then try again")
+                    sys.exit()
+
+        sessions = instructing + route_setting
+        return sessions, config
+
+
+def update_google_calendar(config, sessions):
     print("Updating Google Calendar\n")
+    ID = config["Calendar ID"]
     #set up google stuff again
     creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     service = build("calendar", "v3", credentials=creds)

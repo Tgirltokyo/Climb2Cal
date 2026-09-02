@@ -1,6 +1,5 @@
 /.idea
 /.venv
-/login.json
 /token.json
-/calendar_id.json
 /credentials.json
+/config.json
